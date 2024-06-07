@@ -1,0 +1,23 @@
+{
+    "ads": {
+        "localAmsNetId":    "192.168.0.113.1.1",
+        "localAdsPort":     32713,
+        "targetAmsNetId":   "10.193.21.105.1.1",
+        "targetAdsPort":    851,
+        "routerAddress":    "192.168.0.210",
+        "routerTcpPort":    48898
+
+    },
+    "mqtt": {
+        "brokerUrl":        "mqtt://192.168.0.211",
+        "mqttPort":         1883,
+        "baseTopic":        "ACADEMY13",
+        "organization":     "magna",
+        "division":         "iotacademy",
+        "plant":            "conestoga",
+        "area":             "smart",
+        "line":             "presorter",
+        "workstation":      "2",
+        "type":             "robot"
+    }
+}
