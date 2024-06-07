@@ -46,13 +46,13 @@ const path = __importStar(require("path"));
 var config;
 let configFileName = setConfigurationFilename("config.json");
 let tagsFileName = setConfigurationFilename("tags.txt");
-/*
-*   function main();
-*
-*   This is the mainline code for our project. This code will
-*   perform the following work:
-*   TODO: Add in description
-*/
+let statustagsFileName = setConfigurationFilename("statustags.txt");
+/************************************************************************************
+*   Main ()                                                                         *
+*                                                                                   *
+*   this program will read PLC tags and publish the to MQTT broker                  *
+*                                                                                   *
+************************************************************************************/
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Starting code");
@@ -60,6 +60,7 @@ function main() {
         config = readFileAsJSON(configFileName);
         // read tags from taglist
         let tags = readFileAsArray(tagsFileName);
+        let statustags = readFileAsArray(statustagsFileName);
         // build MQTT base topic
         config.mqtt.baseTopic = config.mqtt.organization + "/" + config.mqtt.division + "/" + config.mqtt.plant + "/" + config.mqtt.area
             + "/" + config.mqtt.line + "/" + config.mqtt.workstation + "/" + config.mqtt.type;

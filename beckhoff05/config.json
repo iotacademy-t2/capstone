@@ -1,6 +1,6 @@
 {
     "ads": {
-        "localAmsNetId":    "192.168.0.115.1.1",
+        "localAmsNetId":    "192.168.0.115.1.1", 
         "localAdsPort":     32713,
         "targetAmsNetId":   "10.193.21.105.1.1",
         "targetAdsPort":    851,

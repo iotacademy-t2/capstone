@@ -14,6 +14,7 @@ import * as path from 'path';
 var config:any;
 let configFileName:string = setConfigurationFilename("config.json");
 let tagsFileName:string = setConfigurationFilename("tags.txt");
+let statustagsFileName:string = setConfigurationFilename("statustags.txt");
 
 /************************************************************************************
 *   Main ()                                                                         *
@@ -30,6 +31,7 @@ async function main() {
 
     // read tags from taglist
     let tags:string[] = readFileAsArray(tagsFileName);
+    let statustags:string[] = readFileAsArray(statustagsFileName);
 
     // build MQTT base topic
     config.mqtt.baseTopic = config.mqtt.organization + "/" + config.mqtt.division + "/" + config.mqtt.plant + "/" + config.mqtt.area 
@@ -84,7 +86,7 @@ async function processReadRequest (adsclient: ads.Client, tags:string[], mqttcli
     let i:number = 0;
     // one common timestamp for all of the readings we're doing
     let d:Date = new Date();
-
+    
     try {
         // iterate through all tags
         for (i = 0; i < tags.length; i++) {
