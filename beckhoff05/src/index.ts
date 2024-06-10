@@ -9,12 +9,13 @@ import * as ads from 'ads-client';
 import * as fs from 'fs';
 import * as mqtt from 'mqtt';
 import * as path from 'path';
+import { Configuration } from './config';
 
 // global variables
 var config:any;
-let configFileName:string = setConfigurationFilename("config.json");
-let tagsFileName:string = setConfigurationFilename("tags.txt");
-let statustagsFileName:string = setConfigurationFilename("statustags.txt");
+let configFileName:string = Configuration.setConfigurationFilename("config.json");
+let tagsFileName:string = Configuration.setConfigurationFilename("tags.txt");
+let statustagsFileName:string = Configuration.setConfigurationFilename("statustags.txt");
 
 /************************************************************************************
 *   Main ()                                                                         *
@@ -27,11 +28,11 @@ async function main() {
     console.log("Starting code");
     
     // read config in runtime
-    config = readFileAsJSON(configFileName);
+    config = Configuration.readFileAsJSON(configFileName);
 
     // read tags from taglist
-    let tags:string[] = readFileAsArray(tagsFileName);
-    let statustags:string[] = readFileAsArray(statustagsFileName);
+    let tags:string[] = Configuration.readFileAsArray(tagsFileName);
+    let statustags:string[] = Configuration.readFileAsArray(statustagsFileName);
 
     // build MQTT base topic
     config.mqtt.baseTopic = config.mqtt.organization + "/" + config.mqtt.division + "/" + config.mqtt.plant + "/" + config.mqtt.area 
@@ -98,7 +99,7 @@ async function processReadRequest (adsclient: ads.Client, tags:string[], mqttcli
             let topic:string = config.mqtt.baseTopic + "/" + tags[i];
             let payload = {
                 "timestamp": d.toISOString(),
-                "value": data.value.toString()
+                "value": data.value
             };
             
             // Connect to MQTT broker and output
@@ -112,44 +113,5 @@ async function processReadRequest (adsclient: ads.Client, tags:string[], mqttcli
     }
 }
 
-/************************************************************************************
-*   readFilesAsArray (fname:string): string[]                                       *
-*                                                                                   *
-*   this function will read data in file as array, return data                      *
-*   in an array of strings                                                          *
-*                                                                                   *
-************************************************************************************/
-function readFileAsArray(fname:string): string[]
-{
-    let textlines:string[] = fs.readFileSync(fname).toString().split("\r\n");
-    return textlines;
-}
-
-/************************************************************************************
-*   readFilesAsJSON (fname:string): string                                          *
-*                                                                                   *
-*   this function will read data in file as JSON, return data                       *
-*   as JSON encoded string                                                          *
-*                                                                                   *
-************************************************************************************/
-function readFileAsJSON(fname:string): string
-{
-    // read files with data in JSON
-    let data:string = fs.readFileSync(fname).toString();
-    return JSON.parse(data);
-}
-
-/************************************************************************************
-*   setConfigurationFilename (fname:string): string                                 *
-*                                                                                   *
-*   add the path.dirname() of the program and /../ to go back                       *
-*   one level, then add the supplied filename                                       *
-*                                                                                   *
-************************************************************************************/
-function setConfigurationFilename(fname:string): string
-{
-    let fn:string = path.dirname(__filename) + "/../" + fname;
-    return fn;
-}
 
 main();     // Execute main function

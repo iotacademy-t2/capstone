@@ -16,7 +16,9 @@
   },
   "dependencies": {
     "@types/ads-client": "^1.14.5",
+    "@types/pg": "^8.11.6",
     "ads-client": "^1.14.3",
-    "mqtt": "^5.7.0"
+    "mqtt": "^5.7.0",
+    "pg": "^8.12.0"
   }
 }
