@@ -68,9 +68,13 @@ async function main() {
             process.on('SIGINT', shutdown);
             process.on('SIGTERM', shutdown);
 
-        } catch (err) {
-            console.log("Error: ", err);
-    }
+        }  catch (error) {
+            let message: any;
+            if (error instanceof Error) {
+                message = error.message;
+            } else message = "Unknown error";
+            console.error((new Date().toISOString()), message);
+        }
     
 }
 
@@ -106,10 +110,12 @@ async function processReadRequest (adsclient: ads.Client, tags:string[], mqttcli
             await mqttclient.publishAsync(topic, JSON.stringify(payload));
             console.log("published: ", topic, " with payload: ", JSON.stringify(payload));
         }
-    } catch (err) {
-        let rowNumber:number = i+1;
-        console.error('Exception on row: ', rowNumber, "error: ", err);
-        
+    }  catch (error) {
+        let message: any;
+        if (error instanceof Error) {
+            message = error.message;
+        } else message = "Unknown error";
+        console.error((new Date().toISOString()), message);
     }
 }
 

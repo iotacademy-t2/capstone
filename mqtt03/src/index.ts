@@ -102,9 +102,13 @@ async function main() {
             process.on('SIGINT', shutdown);
             process.on('SIGTERM', shutdown);
 
-        } catch (err) {
-            console.log("Error: ", err);
-    }
+        }  catch (error) {
+            let message: any;
+            if (error instanceof Error) {
+                message = error.message;
+            } else message = "Unknown error";
+            console.error((new Date().toISOString()), message);
+        }
     
 }
 
