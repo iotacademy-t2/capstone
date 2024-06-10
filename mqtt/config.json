@@ -21,11 +21,18 @@
         "type":             "robot",
         "subscribeTopic":   "topic"
     },
-    "sql_config": {
+    "sql_config_local": {
         "host":             "192.168.0.115",
         "port":             3306,
         "database":         "academy15",
         "user":             "postgres",
         "password":         "academy2024!"
-        }
+    },
+    "sql_config": {
+        "host":             "192.168.0.211",
+        "port":             3306,
+        "database":         "academy15",
+        "user":             "postgres",
+        "password":         "academy2024!"  
+    }
 }

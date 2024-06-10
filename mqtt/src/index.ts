@@ -28,7 +28,7 @@ let tagsFileName:string = Configuration.setConfigurationFilename("tags.txt");
 async function main() {
 
     console.log("Starting code");
-    
+
     // read config in runtime
     config = Configuration.readFileAsJSON(configFileName);
 
@@ -36,18 +36,21 @@ async function main() {
     let tags:string[] = Configuration.readFileAsArray(tagsFileName);
 
     // build MQTT base topic
-    config.mqtt.baseTopic = config.mqtt.organization + "/" + config.mqtt.division + "/" + config.mqtt.plant + "/" + config.mqtt.area 
+    config.mqtt.baseTopic = config.mqtt.organization + "/" + config.mqtt.division + "/" + config.mqtt.plant + "/" + config.mqtt.area
                                 + "/" + config.mqtt.line + "/" + config.mqtt.workstation + "/" + config.mqtt.type;
 
     // create MQTT topic variable
-    let subscribeTopic:string = config.mqtt.subscribeTopic;
-    
-    try 
+    let subscribeTopic:string = config.mqtt.baseTopic;
+
+    try
     {
 
-            // set up connection to DB
-            const dbClient = new pg.Client(config.sql_config);
+            // make a connection to DB
+            const dbClient = new pg.Client(config.sql_config_local);    // change to sql_config for prod
             console.log("db client created");
+
+            await dbClient.connect();
+            console.log("db connected");
 
             // make a connetion to MQTT broker
             let url:string = config.mqtt.brokerUrl + ":" + config.mqtt.mqttPort;
@@ -57,37 +60,16 @@ async function main() {
 
             // local topic
             subscribeTopic = "magna/iotacademy/conestoga/smart/presorter/#";
+            await mqttClient.subscribeAsync(subscribeTopic);
+            console.log("subscription established on topic:" , subscribeTopic);
+
             // set up subscription to MQTT topic
             mqttClient.on('message', (subscribeTopic, message) => {
-                //processMessageRecieved(subscribeTopic, message);
+                processMessageRecieved(subscribeTopic, message, dbClient);
                 //console.log(`Recv: ${message.toString()} on topic: ${subscribeTopic}`);
                 // TODO: add in additional processing for the recieved message
 
             });
-
-            await mqttClient.subscribeAsync(subscribeTopic);
-            console.log("subscription established");
-
-            await dbClient.connect();
-            console.log("db connected");
-            // create table if not existing
-            let sql_command:string = fs.readFileSync('./sql/setup_create.txt').toString();
-            await dbClient.query(sql_command);
-            console.log("db table created");
-
-            // db testing
-            let d:Date = new Date(Date.now());
-
-            let ts:string = d.toISOString();
-            let deviceid:string = "test_device";
-            let metric:string = "PLCtag";
-            let value:number = 555.55;
-
-            sql_command =   "INSERT INTO telemetry(timestamp, deviceid, metric, value)" +
-                            `VALUES('${ts}','${deviceid}','${metric}',${value});`;
-            
-            await dbClient.query(sql_command);
-            console.log("Added data to db");
 
             // set up asynchronus disconnection support via signals
             const shutdown = async() => {
@@ -109,34 +91,49 @@ async function main() {
             } else message = "Unknown error";
             console.error((new Date().toISOString()), message);
         }
-    
+
 }
 
 
 /************************************************************************************
-*   processMessageRecieved(t:string, m:Buffer)                                      *
+*   processMessageRecieved(t:string, m:Buffer, dbc:pg.Client)                       *
 *                                                                                   *
 *   do something with recieved message                                              *
 *                                                                                   *
 *                                                                                   *
 ************************************************************************************/
-async function processMessageRecieved(t:string, m:Buffer)
+async function processMessageRecieved(t:string, m:Buffer, dbc:pg.Client)
 {
-    //console.log(`Recv: ${m.toString()} on topic: ${t}`);
-    
-    // split payload from MQTT into separate timestamp and value
+    // split payload from MQTT
     let payload = JSON.parse(m.toString());
-    let topicComponents:string[] = t.split(`/`)
-    let rawdata:string = '';
-    
+    let topicComponents:string[] = t.split(`/`);
+    let variableComponents:string[] = topicComponents[7].split(`.`);
+
+    // define variables
+    let query:string = "";
+    let deviceid:string = "Robot1";
+
+    if (topicComponents.slice(-1).includes('POS')) {
+
+        query = `INSERT INTO position(TS, deviceid, position.${variableComponents.slice(-1)})
+                    VALUES(${payload.timestamp}, ${deviceid}, ${payload.value}) ON CONFLICT(TS)`;
+
+    } else if (topicComponents[7].includes('TORQUE')) {
+        query = "";// push torque data
+    } else {
+        query = `INSERT INTO position(TS, deviceid, position.${variableComponents.slice(-1)}) VALUES(${payload.timestamp}, ${deviceid}, ${payload.value}) ON CONFLICT(TS)`;
+        // push status data
+    }
+
+    // execute query
     // debug info
     //console.log(topicComponents);
-    
-    rawdata = `"${payload.timestamp}","${topicComponents[0]}","${topicComponents[1]}","${topicComponents[2]}","${topicComponents[3]}",
-                "${topicComponents[4]}","${topicComponents[5]}","${topicComponents[6]}","${topicComponents[7]}","${payload.value}\n`;
 
-    console.log("parsed data: ", rawdata);
-    console.log(`Recv: ${m.toString()} on topic: ${t}`);
+    //rawdata = `"${payload.timestamp}","${topicComponents[0]}","${topicComponents[1]}","${topicComponents[2]}","${topicComponents[3]}",
+    //            "${topicComponents[4]}","${topicComponents[5]}","${topicComponents[6]}","${topicComponents[7]}","${payload.value}\n`;
+
+    //console.log("parsed data: ", rawdata);
+    //console.log(`Recv: ${m.toString()} on topic: ${t}`);
 }
 
 main();     // Execute main function
