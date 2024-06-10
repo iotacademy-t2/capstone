@@ -1,4 +1,4 @@
-INSERT INTO position (TS, position)
+INSERT INTO position (TS, position, deviceid)
 VALUES ()
 ON CONFLICT(TS)
 DO UPDATE SET

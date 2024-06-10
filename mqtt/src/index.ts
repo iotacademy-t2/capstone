@@ -107,33 +107,35 @@ async function processMessageRecieved(t:string, m:Buffer, dbc:pg.Client)
     // split payload from MQTT
     let payload = JSON.parse(m.toString());
     let topicComponents:string[] = t.split(`/`);
-    let variableComponents:string[] = topicComponents[7].split(`.`);
+    let variableComponent:string = topicComponents[7].split(`.`).slice(-1).toString().toLowerCase();
 
     // define variables
     let query:string = "";
     let deviceid:string = "Robot1";
 
-    if (topicComponents.slice(-1).includes('POS')) {
+    //console.log("topicslice: ", topicComponents.slice(-1));
+    //console.log("variableslice: ", variableComponent.slice(-1));
 
-        query = `INSERT INTO position(TS, deviceid, position.${variableComponents.slice(-1)})
-                    VALUES(${payload.timestamp}, ${deviceid}, ${payload.value}) ON CONFLICT(TS)`;
+    if (topicComponents.slice(-1).toString().includes('POS')) {
+        //console.log("first if works");
+        //query = `INSERT INTO position(timestamp, deviceid, 'position.${variableComponent}') VALUES('${payload.timestamp}', '${deviceid}', ${payload.value}) ON CONFLICT(timestamp) DO UPDATE SET position.${variableComponent} = ${payload.value};`;
 
-    } else if (topicComponents[7].includes('TORQUE')) {
-        query = "";// push torque data
+    } else if (topicComponents[7].toString().includes('TORQUE')) {
+        query = `INSERT INTO torque(timestamp, deviceid, motor) VALUES('${payload.timestamp}', '${deviceid}', ${payload.value});`;
     } else {
-        query = `INSERT INTO position(TS, deviceid, position.${variableComponents.slice(-1)}) VALUES(${payload.timestamp}, ${deviceid}, ${payload.value}) ON CONFLICT(TS)`;
-        // push status data
+        query = `INSERT INTO status(timestamp, deviceid, ${variableComponent}) VALUES('${payload.timestamp}', '${deviceid}', ${payload.value}) ON CONFLICT(timestamp) DO UPDATE SET ${variableComponent} = ${payload.value};`;
     }
+    console.log("query:", query);
 
-    // execute query
-    // debug info
-    //console.log(topicComponents);
-
-    //rawdata = `"${payload.timestamp}","${topicComponents[0]}","${topicComponents[1]}","${topicComponents[2]}","${topicComponents[3]}",
-    //            "${topicComponents[4]}","${topicComponents[5]}","${topicComponents[6]}","${topicComponents[7]}","${payload.value}\n`;
-
-    //console.log("parsed data: ", rawdata);
-    //console.log(`Recv: ${m.toString()} on topic: ${t}`);
+    try {
+        await dbc.query(query);
+    } catch (error) {
+        let message: any;
+        if (error instanceof Error) {
+            message = error.message;
+        } else message = "Unknown error";
+        console.error((new Date().toISOString()), message);
+    }
 }
 
 main();     // Execute main function
