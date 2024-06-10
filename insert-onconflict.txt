@@ -1,0 +1,5 @@
+INSERT INTO position (TS, position)
+VALUES ()
+ON CONFLICT(TS)
+DO UPDATE SET
+  position = 0

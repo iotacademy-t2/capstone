@@ -1,0 +1,2 @@
+docker build -t img_beckhoff .
+docker run --restart=always --name=beckhoff team2_beckhoff
