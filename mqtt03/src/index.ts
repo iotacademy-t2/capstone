@@ -136,7 +136,7 @@ async function processMessageRecieved(t:string, m:Buffer)
                 "${topicComponents[4]}","${topicComponents[5]}","${topicComponents[6]}","${topicComponents[7]}","${payload.value}\n`;
 
     console.log("parsed data: ", rawdata);
-    fs.appendFileSync("c:/capstone/csvdata/database2.csv", rawdata);
+    console.log(`Recv: ${m.toString()} on topic: ${t}`);
 }
 
 main();     // Execute main function
