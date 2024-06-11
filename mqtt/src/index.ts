@@ -1,14 +1,12 @@
 /************************************************************************************
 *   index.ts                                                                        *
 *                                                                                   *
-*   this program will subscribe to topics in MQTT broker                            *
+*   this program will subscribe to topics in MQTT broker and write into database    *
 *                                                                                   *
 ************************************************************************************/
 
 // import statements
-import * as fs from 'fs';
 import * as mqtt from 'mqtt';
-import * as path from 'path';
 import { Configuration } from './config';
 import pg from 'pg';
 
@@ -22,7 +20,12 @@ let tagsFileName:string = Configuration.setConfigurationFilename("tags.txt");
 *
 *   This is the mainline code for our project. This code will
 *   perform the following work:
-*   TODO: Add in description
+*   Create a client for MQTT and connect to broker
+*   Create a client for postgreSQL and connect to db
+*
+*   Subscribe to selected topic
+*   Write subscribed values to db
+*
 */
 
 async function main() {
@@ -66,9 +69,6 @@ async function main() {
             // set up subscription to MQTT topic
             mqttClient.on('message', (subscribeTopic, message) => {
                 processMessageRecieved(subscribeTopic, message, dbClient);
-                //console.log(`Recv: ${message.toString()} on topic: ${subscribeTopic}`);
-                // TODO: add in additional processing for the recieved message
-
             });
 
             // set up asynchronus disconnection support via signals
@@ -76,7 +76,6 @@ async function main() {
                 console.log("Disconnecting our services now");
                 await mqttClient.endAsync();
                 await dbClient.end();
-                // TODO: Add in other requests to disconnect from services
                 process.exit();
             }
 
@@ -98,8 +97,7 @@ async function main() {
 /************************************************************************************
 *   processMessageRecieved(t:string, m:Buffer, dbc:pg.Client)                       *
 *                                                                                   *
-*   do something with recieved message                                              *
-*                                                                                   *
+*   take recieved message and write to correct db table                             *
 *                                                                                   *
 ************************************************************************************/
 async function processMessageRecieved(t:string, m:Buffer, dbc:pg.Client)
@@ -113,23 +111,24 @@ async function processMessageRecieved(t:string, m:Buffer, dbc:pg.Client)
     let query:string = "";
     let deviceid:string = "Robot1";
 
-    //console.log("topicslice: ", topicComponents.slice(-1));
-    //console.log("variableslice: ", variableComponent.slice(-1));
-
     if (topicComponents.slice(-1).toString().includes('POS')) {
-        //console.log("first if works");
-        //query = `INSERT INTO position(timestamp, deviceid, 'position.${variableComponent}') VALUES('${payload.timestamp}', '${deviceid}', ${payload.value}) ON CONFLICT(timestamp) DO UPDATE SET position.${variableComponent} = ${payload.value};`;
-
+        // create position query
+        query = `INSERT INTO position(timestamp, deviceid, ${variableComponent}) VALUES('${payload.timestamp}', '${deviceid}', ${payload.value}) ON CONFLICT(timestamp) DO UPDATE SET ${variableComponent} = ${payload.value};`;
     } else if (topicComponents[7].toString().includes('TORQUE')) {
-        query = `INSERT INTO torque(timestamp, deviceid, motor) VALUES('${payload.timestamp}', '${deviceid}', ${payload.value});`;
+        // create torque query
+        query = `INSERT INTO torque(timestamp, deviceid, motors, motor1, motor2, motor3, motor4) VALUES('${payload.timestamp}', '${deviceid}', ARRAY[${payload.value}], ${payload.value[0]}, ${payload.value[1]}, ${payload.value[2]}, ${payload.value[3]});`;
     } else {
+        // create status query
         query = `INSERT INTO status(timestamp, deviceid, ${variableComponent}) VALUES('${payload.timestamp}', '${deviceid}', ${payload.value}) ON CONFLICT(timestamp) DO UPDATE SET ${variableComponent} = ${payload.value};`;
     }
-    console.log("query:", query);
+    // troubleshooting query
+    //console.log("query:", query);
 
     try {
+        // try to write query to db
         await dbc.query(query);
     } catch (error) {
+        // error handling
         let message: any;
         if (error instanceof Error) {
             message = error.message;
