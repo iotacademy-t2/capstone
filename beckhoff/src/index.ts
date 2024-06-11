@@ -1,14 +1,13 @@
 /*
  *   index.ts
- *   this source file will implement [TODO: Add in description]
+ *   this source file will implement connection to PLC, reading tags through polling
+ *   publishing to MQTT with configured topic
  *
  */
 
 // import statements
 import * as ads from "ads-client";
-import * as fs from "fs";
 import * as mqtt from "mqtt";
-import * as path from "path";
 import { Configuration } from "./config";
 
 // global variables
@@ -17,10 +16,10 @@ let configFileName: string = Configuration.setConfigurationFilename("config.json
 let tagsFileName: string = Configuration.setConfigurationFilename("tags.txt");
 let statustagsFileName: string = Configuration.setConfigurationFilename("statustags.txt");
 
-/************************************************************************************
+/*************************************************************************************
  *   Main ()                                                                         *
  *                                                                                   *
- *   this program will read PLC tags and publish the to MQTT broker                  *
+ *   this program will read PLC tags and publish to the MQTT broker                  *
  *                                                                                   *
  ************************************************************************************/
 async function main() {
@@ -61,7 +60,6 @@ async function main() {
         console.log("mqtt connected!");
 
         // call processReadRequest function
-        //await processReadRequest(adsclient, tags, mqttclient);
         setInterval(processReadRequest, 1000, adsclient, tags, mqttclient);
 
         // set up asynchronus disconnection support via signals
@@ -69,7 +67,6 @@ async function main() {
             console.log("Disconnecting our services now");
             await adsclient.disconnect();
             await mqttclient.endAsync();
-            // TODO: Add in other requests to disconnect from services
             process.exit();
         };
 
@@ -92,15 +89,15 @@ async function main() {
  *                                                                                   *
  ************************************************************************************/
 async function processReadRequest(adsclient: ads.Client, tags: string[], mqttclient: mqtt.MqttClient) {
-    // set up a variable to hold the results of the read of PLC data
+    // set up local variables
     let data: ads.SymbolData;
-    let i: number = 0;
+
     // one common timestamp for all of the readings we're doing
     let d: Date = new Date();
 
     try {
         // iterate through all tags
-        for (i = 0; i < tags.length; i++) {
+        for (let i: number = 0; i < tags.length; i++) {
             // read PLC tag and output
             data = await adsclient.readSymbol(tags[i]);
             console.log("data for tag:", tags[i], "is: ", data.value);
