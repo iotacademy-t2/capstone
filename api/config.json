@@ -1,0 +1,9 @@
+{
+    "sql_config": {
+        "host": "192.168.0.211",
+        "port": 3306,
+        "database": "academy18",
+        "user": "postgres",
+        "password": "academy2024!"
+    }
+}

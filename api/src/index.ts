@@ -6,24 +6,25 @@
 
 import express, { Request, Response, NextFunction } from "express";
 import pg from "pg";
+import { Configuration } from "./config";
 import { logger } from "./logger";
 import { Helper } from "./helper";
 
 const PORT: number = 3000;
+let configFileName: string = Configuration.setConfigurationFilename("config.json");
+var config = Configuration.readFileAsJSON(configFileName);
 
 const app: express.Application = express();
 
 // middleware for logging purposes
 app.use((req: Request, res: Response, next: NextFunction) => {
-    // TODO: insert winston logging
     logger.info(`${req.method} ${req.path}`);
-    // continue default processing
     next();
 });
 
 // home route using the app object
 app.get("/", (req: Request, res: Response) => {
-    res.send("Welcome to our first Typescript REST API app!");
+    res.send("<h2>Please use the '/api' endpoint for all requests.</h2>");
 });
 
 // the API router for our test API
@@ -31,17 +32,49 @@ const apiRouter = express.Router();
 
 // middleware specific to this api router
 apiRouter.use((req: Request, res: Response, next: NextFunction) => {
-    logger.info("API router specific middleware!");
     next();
 });
 
-apiRouter.get("/device", (req: Request, res: Response) => {
-    res.send("Device endpoint");
+apiRouter.get("/device", async (req: Request, res: Response) => {
+    let ip: any = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    logger.info(`new request from ${ip}`);
+
+    let limit: number = Helper.convertDataToInteger(req.query.limit, 100);
+    let start: string = Helper.checkValidDate(req.query.start);
+    let end: string = Helper.checkValidDate(req.query.end);
+    let type: string = Helper.convertDataToString(req.query.type);
+
+    logger.info(`start: ${start}`);
+    logger.info(`end: ${end}`);
+    logger.info(`limit: ${limit}`);
+    logger.info(`type: ${type}`);
+
+    let base: string = "SELECT * FROM telemetry";
+    let query: string = `SELECT * FROM telemetry WHERE timestamp > '${start}' AND timestamp < '${end}' AND metric LIKE '%${type}' LIMIT ${limit};`;
+    res.send(query);
+
+    /* try {
+        const dbclient = new pg.Client(config.sql_config);
+        logger.info("database client created");
+        await dbclient.connect();
+        let result: any = await dbclient.query(query);
+        let data: object = result["rows"];
+        res.json(data);
+        await dbclient.end();
+        logger.info("database client destroyed");
+    } catch (error) {
+        res.send("Error parsing request");
+        logger.error(error);
+    } */
 });
 
-app.use("/api", apiRouter);
+app.use(apiRouter);
 
-// start the server (a port listener)
+// start the server
 app.listen(PORT, () => {
     logger.info(`Server started listening on port ${PORT}`);
 });
+
+// device?limit=100
+// device?limit=10&start=2024-06-11T00:00:00.000Z&end=2024-06-11T23:59:00.000Z&type=position
+// SELECT * FROM telemetry WHERE timestamp > '2024-06-11T00:00:00.000Z' AND timestamp < '2024-06-11T23:59:00.000Z' AND metric NOT LIKE '%TORQUE%' AND metric NOT LIKE '%POS%' LIMIT 100;
