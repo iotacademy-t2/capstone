@@ -10,7 +10,8 @@ import { Configuration } from "./config";
 import { logger } from "./logger";
 import { Helper } from "./helper";
 
-const PORT: number = 3000;
+const PORT: number = Helper.convertDataToInteger(process.env.PORT, 3000);
+
 let configFileName: string = Configuration.setConfigurationFilename("config.json");
 var config = Configuration.readFileAsJSON(configFileName);
 
@@ -18,13 +19,13 @@ const app: express.Application = express();
 
 // middleware for logging purposes
 app.use((req: Request, res: Response, next: NextFunction) => {
-    logger.info(`${req.method} ${req.path}`);
+    logger.info(`${req.method}: ${req.path}`);
     next();
 });
 
 // home route using the app object
 app.get("/", (req: Request, res: Response) => {
-    res.send("<h2>Please use the '/api' endpoint for all requests.</h2>");
+    res.send("<h3>Please use the '/api' endpoint for all requests.</h3>");
 });
 
 // the API router for our test API
@@ -39,18 +40,13 @@ apiRouter.get("/device", async (req: Request, res: Response) => {
     let ip: any = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     logger.info(`new request from ${ip}`);
 
-    let limit: number = Helper.convertDataToInteger(req.query.limit, 100);
-    let start: string = Helper.checkValidDate(req.query.start);
-    let end: string = Helper.checkValidDate(req.query.end);
-    let type: string = Helper.convertDataToString(req.query.type);
+    let query = Helper.createQuery(
+        req.query.limit,
+        req.query.start,
+        req.query.end,
+        req.query.metric
+    );
 
-    logger.info(`start: ${start}`);
-    logger.info(`end: ${end}`);
-    logger.info(`limit: ${limit}`);
-    logger.info(`type: ${type}`);
-
-    let base: string = "SELECT * FROM telemetry";
-    let query: string = `SELECT * FROM telemetry WHERE timestamp > '${start}' AND timestamp < '${end}' AND metric LIKE '%${type}' LIMIT ${limit};`;
     res.send(query);
 
     /* try {
@@ -75,6 +71,5 @@ app.listen(PORT, () => {
     logger.info(`Server started listening on port ${PORT}`);
 });
 
-// device?limit=100
-// device?limit=10&start=2024-06-11T00:00:00.000Z&end=2024-06-11T23:59:00.000Z&type=position
+// http://127.0.0.1:3000/device?limit=10&start=2024-06-11T00:00:00.000Z&end=2024-06-11T23:59:00.000Z&metric=position
 // SELECT * FROM telemetry WHERE timestamp > '2024-06-11T00:00:00.000Z' AND timestamp < '2024-06-11T23:59:00.000Z' AND metric NOT LIKE '%TORQUE%' AND metric NOT LIKE '%POS%' LIMIT 100;
