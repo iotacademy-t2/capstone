@@ -22,6 +22,7 @@ let tagsFileName:string = Configuration.setConfigurationFilename("tags.txt");
 *   perform the following work:
 *   Create a client for MQTT and connect to broker
 *   Create a client for postgreSQL and connect to db
+*   Verify tables exists, create them otherwise
 *
 *   Subscribe to selected topic
 *   Write subscribed values to db
@@ -49,11 +50,14 @@ async function main() {
     {
 
             // make a connection to DB
-            const dbClient = new pg.Client(config.sql_config_local);    // change to sql_config for prod
+            const dbClient = new pg.Client(config.sql_config);    // change to sql_config for prod, sql_config_local for test
             console.log("db client created");
 
             await dbClient.connect();
             console.log("db connected");
+
+            // create tables if not existing
+            createTables(dbClient);
 
             // make a connetion to MQTT broker
             let url:string = config.mqtt.brokerUrl + ":" + config.mqtt.mqttPort;
@@ -134,6 +138,80 @@ async function processMessageRecieved(t:string, m:Buffer, dbc:pg.Client)
             message = error.message;
         } else message = "Unknown error";
         console.error((new Date().toISOString()), message);
+    }
+}
+
+/************************************************************************************
+*   createTables(dbc:pg.Client)                                                     *
+*                                                                                   *
+*   create db tables if not existing                                                *
+*                                                                                   *
+************************************************************************************/
+async function createTables(dbc:pg.Client) {
+    // define local variables
+    let statusQuery:string = '';
+    let positionQuery:string = '';
+    let torqueQuery:string = '';
+    let query:string[] = ['', '', ''];
+
+    // create query for status table
+    statusQuery = `CREATE TABLE IF NOT EXISTS status (
+            timestamp TIMESTAMP NOT NULL,
+            deviceid VARCHAR(10) NOT NULL,
+            initialized boolean,
+            running boolean,
+            merror boolean,
+            wsviolation boolean,
+            paused boolean,
+            speedpercentage integer,
+            finishedpartnum integer,
+            PRIMARY KEY (timestamp),
+            UNIQUE (timestamp)
+            )`;
+    // troubleshooting statusQuery
+    //console.log("status query: ", statusQuery);
+
+    // create query for position table
+    positionQuery = `CREATE TABLE IF NOT EXISTS position (
+        timestamp TIMESTAMP NOT NULL,
+        deviceid VARCHAR(10) NOT NULL,
+        x double precision,
+        y double precision,
+        z double precision,
+        PRIMARY KEY (timestamp),
+        UNIQUE (timestamp)
+        )`;
+    // troubleshooting positionQuery
+    //console.log("position query: ", positionQuery);
+
+    // create query for torque table
+    torqueQuery = `CREATE TABLE IF NOT EXISTS torque (
+        timestamp TIMESTAMP NOT NULL,
+        deviceid VARCHAR(10) NOT NULL,
+        motor1 double precision,
+        motor2 double precision,
+        motor3 double precision,
+        motor4 double precision,
+        motors double precision[],
+        PRIMARY KEY (timestamp),
+        UNIQUE (timestamp)
+        )`;
+    // troubleshooting torqueQuery
+    //console.log("torque query: ", torqueQuery);
+
+    query = [statusQuery, positionQuery, torqueQuery];
+    for (let i:number = 0; i < query.length; i++) {
+        try {
+            // try to write query to db
+            await dbc.query(query[i]);
+        } catch (error) {
+            // error handling
+            let message: any;
+            if (error instanceof Error) {
+                message = error.message;
+            } else message = "Unknown error";
+            console.error((new Date().toISOString()), message);
+        }
     }
 }
 
