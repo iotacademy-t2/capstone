@@ -33,6 +33,6 @@
         "port":             3306,
         "database":         "academy15",
         "user":             "postgres",
-        "password":         "academy2024!"  
+        "password":         "academy2024!"
     }
 }
