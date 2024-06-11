@@ -1,5 +1,9 @@
 node_modules
 dist/
+<<<<<<< HEAD
 beckhoff/config.json
 .vscode/
 logs/
+=======
+.vscode/
+>>>>>>> b0b247a5b5a2ef9c9eb776fdb8eca1a7fb54489c

@@ -66,7 +66,8 @@ async function main() {
             console.log("mqtt connected!");
 
             // local topic
-            subscribeTopic = "magna/iotacademy/conestoga/smart/presorter/#";
+            subscribeTopic = config.mqtt.organization + "/" + config.mqtt.division + "/" + config.mqtt.plant
+                                + "/" + config.mqtt.area + "/" + config.mqtt.line  + "/#";
             await mqttClient.subscribeAsync(subscribeTopic);
             console.log("subscription established on topic:" , subscribeTopic);
 
