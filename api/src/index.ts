@@ -6,29 +6,10 @@
 
 import express, { Request, Response, NextFunction } from "express";
 import pg from "pg";
-import { createLogger, transports, format } from "winston";
+import { logger } from "./logger";
 import { Helper } from "./helper";
 
 const PORT: number = 3000;
-
-const logger = createLogger({
-    transports: [
-        new transports.Console({
-            format: format.combine(
-                format.colorize(),
-                format.timestamp(),
-                format.printf(({ timestamp, level, message }) => {
-                    return `[${timestamp}] ${level}: ${message}`;
-                })
-            ),
-        }),
-        new transports.File({
-            dirname: "../logs",
-            filename: "api.log",
-            format: format.combine(format.timestamp(), format.json()),
-        }),
-    ],
-});
 
 const app: express.Application = express();
 
