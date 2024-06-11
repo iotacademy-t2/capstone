@@ -12,7 +12,7 @@
         "brokerUrl":        "mqtt://192.168.0.211",
         "mqttPort":         1883,
         "baseTopic":        "ACADEMY13",
-        "organization":     "magna",
+        "organization":     "m",
         "division":         "iotacademy",
         "plant":            "conestoga",
         "area":             "smart",
