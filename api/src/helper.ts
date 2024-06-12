@@ -60,7 +60,7 @@ export class Helper {
             start = startOfDay.toISOString();
         }
         if (end == "") end = new Date().toISOString();
-        if (metric == "") metric = "ROBOTPOS";
+        if (metric == "") metric = "STATE";
 
         query = `SELECT * FROM telemetry WHERE timestamp > '${start}' AND timestamp < '${end}' AND metric LIKE '%${metric}%' LIMIT ${limit};`;
 
