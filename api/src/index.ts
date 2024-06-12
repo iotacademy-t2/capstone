@@ -31,6 +31,8 @@ app.get("/", (req: Request, res: Response) => {
     res.send("<h3>Please use the '/device' endpoint for all API requests.</h3>");
 });
 
+app.use(express.static("static"));
+
 // the API router for our test API
 const apiRouter = express.Router();
 
