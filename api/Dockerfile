@@ -1,6 +1,6 @@
 FROM node:21-alpine
 
-ENV PORT 3100
+ENV PORT 3300
 ENV USER postgres
 ENV PASSWORD academy2024!
 
