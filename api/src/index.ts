@@ -10,12 +10,13 @@ import { Configuration } from "./config";
 import { logger } from "./logger";
 import { Helper } from "./helper";
 
-const PORT: number = Helper.convertDataToInteger(process.env.PORT, 3000);
-
 let configFileName: string = Configuration.setConfigurationFilename("config.json");
 var config = Configuration.readFileAsJSON(configFileName);
 
-// TODO: username/pw from ENV
+// get ENV variables
+const PORT: number = Helper.convertDataToInteger(process.env.PORT, 3000);
+config.sql_config.user = process.env.USER;
+config.sql_config.password = process.env.PASSWORD;
 
 const app: express.Application = express();
 
@@ -27,7 +28,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // home route using the app object
 app.get("/", (req: Request, res: Response) => {
-    res.send("<h3>Please use the '/api' endpoint for all requests.</h3>");
+    res.send("<h3>Please use the '/device' endpoint for all API requests.</h3>");
 });
 
 // the API router for our test API
@@ -38,32 +39,27 @@ apiRouter.use((req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
+// device endpoint
 apiRouter.get("/device", async (req: Request, res: Response) => {
     let ip: any = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     logger.info(`new request from ${ip}`);
 
-    let query = Helper.createQuery(
-        req.query.limit,
-        req.query.start,
-        req.query.end,
-        req.query.metric
-    );
+    let query = Helper.createQuery(req.query.limit, req.query.start, req.query.end, req.query.metric);
 
-    res.send(query);
-
-    /* try {
+    try {
         const dbclient = new pg.Client(config.sql_config);
-        logger.info("database client created");
         await dbclient.connect();
-        let result: any = await dbclient.query(query);
-        let data: object = result["rows"];
-        res.json(data);
+        let result: object = (await dbclient.query(query))["rows"];
+        res.json(result);
         await dbclient.end();
-        logger.info("database client destroyed");
     } catch (error) {
-        res.send("Error parsing request");
-        logger.error(error);
-    } */
+        let message: any;
+        if (error instanceof Error) {
+            message = error.message;
+        } else message = "Unknown error";
+        logger.error(message);
+        res.send(`<h3>ERROR retrieving data</h3>${message}`);
+    }
 });
 
 app.use(apiRouter);
