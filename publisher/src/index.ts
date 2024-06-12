@@ -9,6 +9,7 @@
 import * as ads from "ads-client";
 import * as mqtt from "mqtt";
 import { Configuration } from "./config";
+import { logger } from "./logger";
 
 // global variables
 var config: any;
@@ -23,7 +24,7 @@ let statustagsFileName: string = Configuration.setConfigurationFilename("statust
  *                                                                                   *
  ************************************************************************************/
 async function main() {
-    console.log("Starting code");
+    logger.info("Starting code");
 
     // read config in runtime
     config = Configuration.readFileAsJSON(configFileName);
@@ -55,16 +56,16 @@ async function main() {
 
         // make a connetion to MQTT broker
         let url: string = config.mqtt.brokerUrl + ":" + config.mqtt.mqttPort;
-        console.log("URL: ", url);
+        logger.info("URL: ", url);
         const mqttclient: mqtt.MqttClient = await mqtt.connectAsync(url);
-        console.log("mqtt connected!");
+        logger.info("mqtt connected!");
 
         // call processReadRequest function
         setInterval(processReadRequest, 1000, adsclient, tags, mqttclient);
 
         // set up asynchronus disconnection support via signals
         const shutdown = async () => {
-            console.log("Disconnecting our services now");
+            logger.info("Disconnecting our services now");
             await adsclient.disconnect();
             await mqttclient.endAsync();
             process.exit();
@@ -78,7 +79,7 @@ async function main() {
         if (error instanceof Error) {
             message = error.message;
         } else message = "Unknown error";
-        console.error(new Date().toISOString(), message);
+        logger.error(message);
     }
 }
 
@@ -100,7 +101,7 @@ async function processReadRequest(adsclient: ads.Client, tags: string[], mqttcli
         for (let i: number = 0; i < tags.length; i++) {
             // read PLC tag and output
             data = await adsclient.readSymbol(tags[i]);
-            console.log("data for tag:", tags[i], "is: ", data.value);
+            logger.info("data for tag:", tags[i], "is: ", data.value);
 
             // MQTT payload and topic processing
             let topic: string = config.mqtt.baseTopic + "/" + tags[i];
@@ -111,14 +112,14 @@ async function processReadRequest(adsclient: ads.Client, tags: string[], mqttcli
 
             // Connect to MQTT broker and output
             await mqttclient.publishAsync(topic, JSON.stringify(payload));
-            console.log("published: ", topic, " with payload: ", JSON.stringify(payload));
+            logger.info("published: ", topic, " with payload: ", JSON.stringify(payload));
         }
     } catch (error) {
         let message: any;
         if (error instanceof Error) {
             message = error.message;
         } else message = "Unknown error";
-        console.error(new Date().toISOString(), message);
+        logger.error(message);
     }
 }
 
