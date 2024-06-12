@@ -33,9 +33,7 @@ export class Helper {
         if (data != undefined) {
             try {
                 let dateParsed: Date = new Date(`${data}`);
-                if (dateParsed.toISOString() == data) {
-                    return data.toString();
-                }
+                return dateParsed.toISOString();
             } catch (error) {
                 logger.error(`Invalid date: ${data}`);
             }
@@ -59,10 +57,10 @@ export class Helper {
             startOfDay.setHours(0, 0, 0, 0);
             start = startOfDay.toISOString();
         }
-        if (end == "") end = new Date().toISOString();
-        if (metric == "") metric = "STATE";
+        if (end == "" || end < start || end == start) end = new Date().toISOString();
+        if (metric == "") metric = "POS";
 
-        query = `SELECT * FROM telemetry WHERE timestamp > '${start}' AND timestamp < '${end}' AND metric LIKE '%${metric}%' LIMIT ${limit};`;
+        query = `SELECT * FROM telemetry WHERE timestamp > '${start}' AND timestamp < '${end}' AND LOWER(metric) LIKE LOWER('%${metric}%') LIMIT ${limit};`;
 
         logger.info(query);
         return query;
