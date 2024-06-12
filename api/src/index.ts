@@ -51,8 +51,8 @@ apiRouter.get("/device", async (req: Request, res: Response) => {
     try {
         const dbclient = new pg.Client(config.sql_config);
         await dbclient.connect();
-        let result: object = (await dbclient.query(query))["rows"];
-        res.json(result);
+        let result: any = await dbclient.query(query);
+        res.json(result["rows"]);
         await dbclient.end();
     } catch (error) {
         let message: any;

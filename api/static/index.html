@@ -1,6 +1,40 @@
-<!DOCTYPE html>
-<head></head>
-<body>
-    <h1>Team #2 - Rest API</h1>
+<!doctype html>
+<head>
+<title>REST API - Team 2</title>
+</head>
+
+<script>
+
+async function getData(url)
+{
+	const response = await fetch(url);
+	return await response.json();
+}
+
+async function testAPI()
+{
+	let u = "http://127.0.0.1:3100/device?start=2024-06-11&limit=100";
+	//let params = document.getElementById("parameters").value;
+
+    let random = Math.floor(Math.random() * 100);
+	let data = await getData(u);
+
+    content = `"timestamp": ${data[random].timestamp}<br/>"deviceid": ${data[random].deviceid}<br/>"metric": ${data[random].metric}<br/>"value": ${data[random].value}`;
+
+	document.getElementById("showData").innerHTML = content;
+}
+</script>
+
 </body>
-</html>
+
+<h1>REST API - Team 2</h1>
+<p>
+
+<label for="parameters">Click GO to fetch some random data!</label> <br /> <br />
+<input type="button" value="GO" onClick="testAPI()"></input>
+
+<table border=1 width=400>
+<tr>
+<td id="showData"><i>click GO button!</i></td>
+</tr>
+</table>

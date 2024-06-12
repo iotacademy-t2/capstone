@@ -53,8 +53,7 @@ export class Helper {
 
         // default values if empty
         if (start == "") {
-            let startOfDay = new Date();
-            startOfDay.setHours(0, 0, 0, 0);
+            let startOfDay = new Date("2024-06-10");
             start = startOfDay.toISOString();
         }
         if (end == "" || end < start || end == start) end = new Date().toISOString();
