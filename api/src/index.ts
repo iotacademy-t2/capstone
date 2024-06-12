@@ -15,6 +15,8 @@ const PORT: number = Helper.convertDataToInteger(process.env.PORT, 3000);
 let configFileName: string = Configuration.setConfigurationFilename("config.json");
 var config = Configuration.readFileAsJSON(configFileName);
 
+// TODO: username/pw from ENV
+
 const app: express.Application = express();
 
 // middleware for logging purposes
@@ -70,6 +72,3 @@ app.use(apiRouter);
 app.listen(PORT, () => {
     logger.info(`Server started listening on port ${PORT}`);
 });
-
-// http://127.0.0.1:3000/device?limit=10&start=2024-06-11T00:00:00.000Z&end=2024-06-11T23:59:00.000Z&metric=position
-// SELECT * FROM telemetry WHERE timestamp > '2024-06-11T00:00:00.000Z' AND timestamp < '2024-06-11T23:59:00.000Z' AND metric NOT LIKE '%TORQUE%' AND metric NOT LIKE '%POS%' LIMIT 100;

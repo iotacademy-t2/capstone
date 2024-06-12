@@ -45,23 +45,26 @@ export class Helper {
 
     // create SQL query based on inputs
     public static createQuery(l: any, s: any, e: any, m: any): string {
-        // default values???
         let query: string = "";
-        let base: string = "SELECT * FROM telemetry";
 
+        // check values
         let limit: number = this.convertDataToInteger(l, 100);
         let start: string = this.checkValidDate(s);
         let end: string = this.checkValidDate(e);
         let metric: string = this.convertDataToString(m);
 
-        query += base;
-        if (start != "" || end != "" || metric != "") {
-            query += " WHERE";
-            if (start != "") query += ` timestamp > '${start}'`;
-            if (end != "") query += ` timestamp < '${end}'`;
+        // default values if empty
+        if (start == "") {
+            let startOfDay = new Date();
+            startOfDay.setHours(0, 0, 0, 0);
+            start = startOfDay.toISOString();
         }
-        query += ` LIMIT ${limit}`;
+        if (end == "") end = new Date().toISOString();
+        if (metric == "") metric = "ROBOTPOS";
 
+        query = `SELECT * FROM telemetry WHERE timestamp > '${start}' AND timestamp < '${end}' AND metric LIKE '%${metric}%' LIMIT ${limit};`;
+
+        logger.info(query);
         return query;
     }
 }
