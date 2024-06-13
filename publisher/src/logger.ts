@@ -21,7 +21,7 @@ export const logger = createLogger({
         // filehandler - JSON output
         new transports.File({
             dirname: "../logs",
-            filename: "api.log",
+            filename: "publisher.log",
             format: format.combine(format.timestamp(), format.json()),
         }),
     ],
