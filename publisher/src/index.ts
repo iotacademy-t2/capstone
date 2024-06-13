@@ -89,7 +89,11 @@ async function main() {
  *   this function will process all ADS reads to PLC tags in the tags array          *
  *                                                                                   *
  ************************************************************************************/
-async function processReadRequest(adsclient: ads.Client, tags: string[], mqttclient: mqtt.MqttClient) {
+async function processReadRequest(
+    adsclient: ads.Client,
+    tags: string[],
+    mqttclient: mqtt.MqttClient
+) {
     // set up local variables
     let data: ads.SymbolData;
 
@@ -112,7 +116,7 @@ async function processReadRequest(adsclient: ads.Client, tags: string[], mqttcli
 
             // Connect to MQTT broker and output
             await mqttclient.publishAsync(topic, JSON.stringify(payload));
-            logger.info(`published: ${topic} with payload: ${JSON.stringify(payload)}`);
+            //logger.info(`published: ${topic} with payload: ${JSON.stringify(payload)}`);
         }
     } catch (error) {
         let message: any;
