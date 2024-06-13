@@ -1,19 +1,20 @@
-version: '3.8'
+name: grafana
 
 services:
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana
     ports:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=
     depends_on:
       - loki
     volumes:
       - grafana-storage:/var/lib/grafana
 
   loki:
-    image: grafana/loki:2.5.0
+    image: grafana/loki
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
@@ -22,7 +23,7 @@ services:
       - loki_data:/loki
 
   promtail:
-    image: grafana/promtail:2.5.0
+    image: grafana/promtail
     command: -config.file=/etc/promtail/config.yaml
     volumes:
       - ./promtail/config:/etc/promtail
