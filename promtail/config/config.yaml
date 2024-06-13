@@ -25,4 +25,3 @@ scrape_configs:
           - timestamp:
                 source: ts
                 format: RFC3339Nano
-                fallback_formats: "2006-01-02T15:04:05.000Z" # ISO 8601 format
