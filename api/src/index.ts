@@ -14,7 +14,7 @@ let configFileName: string = Configuration.setConfigurationFilename("config.json
 var config = Configuration.readFileAsJSON(configFileName);
 
 // get ENV variables
-const PORT: number = Helper.convertDataToInteger(process.env.PORT, 3000);
+const PORT: number = Helper.convertDataToInteger(process.env.PORT, 3300);
 config.sql_config.user = process.env.USER;
 config.sql_config.password = process.env.PASSWORD;
 
@@ -46,7 +46,7 @@ apiRouter.get("/device", async (req: Request, res: Response) => {
     let ip: any = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     logger.info(`new request from ${ip}`);
 
-    let query = Helper.createQuery(req.query.limit, req.query.start, req.query.end, req.query.metric);
+    let query = Helper.createQuery(req.query.limit, req.query.start, req.query.end, req.query.metric, req.query.order);
 
     try {
         const dbclient = new pg.Client(config.sql_config);
@@ -60,7 +60,7 @@ apiRouter.get("/device", async (req: Request, res: Response) => {
             message = error.message;
         } else message = "Unknown error";
         logger.error(message);
-        res.send(`<h3>ERROR retrieving data</h3>${message}`);
+        res.json({ error: message });
     }
 });
 

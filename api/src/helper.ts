@@ -42,7 +42,7 @@ export class Helper {
     }
 
     // create SQL query based on inputs
-    public static createQuery(l: any, s: any, e: any, m: any): string {
+    public static createQuery(l: any, s: any, e: any, m: any, o: any): string {
         let query: string = "";
 
         // check values
@@ -50,6 +50,7 @@ export class Helper {
         let start: string = this.checkValidDate(s);
         let end: string = this.checkValidDate(e);
         let metric: string = this.convertDataToString(m);
+        let order: string = this.convertDataToString(o);
 
         // default values if empty
         if (start == "") {
@@ -57,9 +58,12 @@ export class Helper {
             start = startOfDay.toISOString();
         }
         if (end == "" || end < start || end == start) end = new Date().toISOString();
-        if (metric == "") metric = "POS";
+        if (order == "" || order.toLowerCase() != "desc") order = "ASC";
 
-        query = `SELECT * FROM telemetry WHERE timestamp > '${start}' AND timestamp < '${end}' AND LOWER(metric) LIKE LOWER('%${metric}%') LIMIT ${limit};`;
+        if (limit === 0)
+            query = `SELECT * FROM telemetry WHERE timestamp > '${start}' AND timestamp < '${end}' AND LOWER(metric) LIKE LOWER('%${metric}%') ORDER BY timestamp ${order.toUpperCase()}`;
+        else
+            query = `SELECT * FROM telemetry WHERE timestamp > '${start}' AND timestamp < '${end}' AND LOWER(metric) LIKE LOWER('%${metric}%') ORDER BY timestamp ${order.toUpperCase()} LIMIT ${limit};`;
 
         logger.info(query);
         return query;
