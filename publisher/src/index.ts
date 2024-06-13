@@ -94,19 +94,19 @@ async function processReadRequest(adsclient: ads.Client, tags: string[], mqttcli
     let data: ads.SymbolData;
 
     // one common timestamp for all of the readings we're doing
-    let d: Date = new Date();
+    let timestamp: Date = new Date();
 
     try {
         // iterate through all tags
-        for (let i: number = 0; i < tags.length; i++) {
+        for (let index: number = 0; index < tags.length; index++) {
             // read PLC tag and output
-            data = await adsclient.readSymbol(tags[i]);
-            logger.info(`data for tag: ${tags[i]} is: ${data.value}`);
+            data = await adsclient.readSymbol(tags[index]);
+            logger.info(`data for tag: ${tags[index]} is: ${data.value}`);
 
             // MQTT payload and topic processing
-            let topic: string = config.mqtt.baseTopic + "/" + tags[i];
+            let topic: string = config.mqtt.baseTopic + "/" + tags[index];
             let payload = {
-                timestamp: d.toISOString(),
+                timestamp: timestamp.toISOString(),
                 value: data.value,
             };
 
