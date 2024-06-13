@@ -1,6 +1,8 @@
 <!doctype html>
+
 <head>
 <title>REST API - Team 2</title>
+<link rel="stylesheet" type="text/css" href="./style.css">
 </head>
 
 <script>
@@ -25,16 +27,22 @@ async function testAPI()
 }
 </script>
 
+<body>
+
+<div class="content">
+	<h1 class="title">REST API - Team 2</h1>
+
+	<p>
+
+	<label for="parameters">Click GO to fetch some random data!</label> <br /> <br />
+	<input type="button" value="GO" onClick="testAPI()"></input>
+
+	<table class="data" width=400>
+		<tr>
+			<td id="showData"><i>click GO button!</i></td>
+		</tr>
+	</table>
+</div>
+
 </body>
-
-<h1>REST API - Team 2</h1>
-<p>
-
-<label for="parameters">Click GO to fetch some random data!</label> <br /> <br />
-<input type="button" value="GO" onClick="testAPI()"></input>
-
-<table border=1 width=400>
-<tr>
-<td id="showData"><i>click GO button!</i></td>
-</tr>
-</table>
+</html>
