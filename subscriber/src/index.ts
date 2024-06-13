@@ -71,7 +71,7 @@ async function main() {
 
         // make a connetion to MQTT broker
         let url: string = config.mqtt.brokerUrl + ":" + config.mqtt.mqttPort;
-        logger.info("URL: ", url);
+        logger.info(`URL: ${url}`);
         const mqttClient: mqtt.MqttClient = await mqtt.connectAsync(url);
         logger.info("mqtt connected!");
 
@@ -88,7 +88,7 @@ async function main() {
             config.mqtt.line +
             "/#";
         await mqttClient.subscribeAsync(subscribeTopic);
-        logger.info("subscription established on topic:", subscribeTopic);
+        logger.info(`subscription established on topic: ${subscribeTopic}`);
 
         // set up subscription to MQTT topic
         mqttClient.on("message", (subscribeTopic, message) => {

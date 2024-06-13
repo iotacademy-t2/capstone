@@ -56,7 +56,7 @@ async function main() {
 
         // make a connetion to MQTT broker
         let url: string = config.mqtt.brokerUrl + ":" + config.mqtt.mqttPort;
-        logger.info("URL: ", url);
+        logger.info(`URL: ${url}`);
         const mqttclient: mqtt.MqttClient = await mqtt.connectAsync(url);
         logger.info("mqtt connected!");
 
@@ -101,7 +101,7 @@ async function processReadRequest(adsclient: ads.Client, tags: string[], mqttcli
         for (let i: number = 0; i < tags.length; i++) {
             // read PLC tag and output
             data = await adsclient.readSymbol(tags[i]);
-            logger.info("data for tag:", tags[i], "is: ", data.value);
+            logger.info(`data for tag: ${tags[i]} is: ${data.value}`);
 
             // MQTT payload and topic processing
             let topic: string = config.mqtt.baseTopic + "/" + tags[i];
@@ -112,7 +112,7 @@ async function processReadRequest(adsclient: ads.Client, tags: string[], mqttcli
 
             // Connect to MQTT broker and output
             await mqttclient.publishAsync(topic, JSON.stringify(payload));
-            logger.info("published: ", topic, " with payload: ", JSON.stringify(payload));
+            logger.info(`published: ${topic} with payload: ${JSON.stringify(payload)}`);
         }
     } catch (error) {
         let message: any;
